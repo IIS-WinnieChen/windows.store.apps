@@ -1,4 +1,5 @@
 ﻿using System;
+<<<<<<< HEAD
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -431,5 +432,16 @@ namespace ContosoCookbook.Data
             _recipeDataSource.AllGroups.Add(group);
             return group;
         }
+=======
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ContosoCookbook.DataModel
+{
+    class RecipeDataSource
+    {
+>>>>>>> 81fb74878327df560f3f589619652619d2a87874
     }
 }
