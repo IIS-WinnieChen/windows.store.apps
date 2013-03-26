@@ -1,5 +1,5 @@
 ﻿using ContosoCookbook.Common;
-
+using ContosoCookbook.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -69,6 +69,7 @@ namespace ContosoCookbook
                     }
                 }
 
+                await RecipeDataSource.LoadRemoteDataAsync();
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
             }
@@ -84,6 +85,7 @@ namespace ContosoCookbook
             }
             // Ensure the current window is active
             Window.Current.Activate();
+
         }
 
         /// <summary>

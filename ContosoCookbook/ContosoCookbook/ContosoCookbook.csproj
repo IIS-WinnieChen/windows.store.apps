@@ -13,6 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{BC8A1FFA-BEE3-4634-8014-F334798102B3};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <PackageCertificateKeyFile>ContosoCookbook_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -100,12 +102,10 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\ListConverter.cs" />
     <Compile Include="DataModel\RecipeDataSource.cs" />
     <Compile Include="GroupedItemsPage.xaml.cs">
       <DependentUpon>GroupedItemsPage.xaml</DependentUpon>
@@ -130,6 +130,7 @@
     </AppxManifest>
     <None Include="Common\ReadMe.txt" />
     <None Include="ContosoCookbook_TemporaryKey.pfx" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\Logo.png" />
@@ -140,6 +141,107 @@
     <Content Include="Assets\MediumGray.png" />
     <Content Include="Assets\DarkGray.png" />
     <Content Include="Assets\WideLogo.png" />
+    <Content Include="Data\Recipes.txt" />
+    <Content Include="Images\chinese\Chinese_1_150_C.jpg" />
+    <Content Include="Images\chinese\Chinese_1_600_C.jpg" />
+    <Content Include="Images\chinese\Chinese_2_150_C.jpg" />
+    <Content Include="Images\chinese\Chinese_2_600_C.jpg" />
+    <Content Include="Images\chinese\Chinese_3_150_C.jpg" />
+    <Content Include="Images\chinese\Chinese_3_600_C.jpg" />
+    <Content Include="Images\chinese\Chinese_4_150_C.jpg" />
+    <Content Include="Images\chinese\Chinese_4_600_C.jpg" />
+    <Content Include="Images\chinese\Chinese_5_150_C.jpg" />
+    <Content Include="Images\chinese\Chinese_5_600_C.jpg" />
+    <Content Include="Images\chinese\Chinese_6_150_C.jpg" />
+    <Content Include="Images\chinese\Chinese_6_310_C.jpg" />
+    <Content Include="Images\chinese\Chinese_6_600_C.jpg" />
+    <Content Include="Images\chinese\chinese_group.png" />
+    <Content Include="Images\chinese\chinese_group_detail.png" />
+    <Content Include="Images\chinese\chinese_group_header.png" />
+    <Content Include="Images\french\French_1_150_C.jpg" />
+    <Content Include="Images\french\French_1_600_C.jpg" />
+    <Content Include="Images\french\French_2_150_C.jpg" />
+    <Content Include="Images\french\French_2_310_C.jpg" />
+    <Content Include="Images\french\French_2_600_C.jpg" />
+    <Content Include="Images\french\French_3_150_C.jpg" />
+    <Content Include="Images\french\French_3_600_C.jpg" />
+    <Content Include="Images\french\French_4_150_C.jpg" />
+    <Content Include="Images\french\French_4_600_C.jpg" />
+    <Content Include="Images\french\French_5_150_C.jpg" />
+    <Content Include="Images\french\French_5_600_C.jpg" />
+    <Content Include="Images\french\French_6_150_C.jpg" />
+    <Content Include="Images\french\French_6_600_C.jpg" />
+    <Content Include="Images\french\french_group.png" />
+    <Content Include="Images\french\french_group_detail.png" />
+    <Content Include="Images\french\french_group_header.png" />
+    <Content Include="Images\german\German_1_150_C.jpg" />
+    <Content Include="Images\german\German_1_600_C.jpg" />
+    <Content Include="Images\german\German_2_150_C.jpg" />
+    <Content Include="Images\german\German_2_600_C.jpg" />
+    <Content Include="Images\german\German_3_150_C.jpg" />
+    <Content Include="Images\german\German_3_600_C.jpg" />
+    <Content Include="Images\german\German_4_150_C.jpg" />
+    <Content Include="Images\german\German_4_310_C.jpg" />
+    <Content Include="Images\german\German_4_600_C.jpg" />
+    <Content Include="Images\german\German_5_150_C.jpg" />
+    <Content Include="Images\german\German_5_600_C.jpg" />
+    <Content Include="Images\german\German_6_150_C.jpg" />
+    <Content Include="Images\german\German_6_600_C.jpg" />
+    <Content Include="Images\german\german_group.png" />
+    <Content Include="Images\german\german_group_detail.png" />
+    <Content Include="Images\german\german_group_header.png" />
+    <Content Include="Images\indian\Indian_1_150_C.jpg" />
+    <Content Include="Images\indian\Indian_1_600_C.jpg" />
+    <Content Include="Images\indian\Indian_2_150_C.jpg" />
+    <Content Include="Images\indian\Indian_2_600_C.jpg" />
+    <Content Include="Images\indian\Indian_3_150_C.jpg" />
+    <Content Include="Images\indian\Indian_3_600_C.jpg" />
+    <Content Include="Images\indian\Indian_4_150_C.jpg" />
+    <Content Include="Images\indian\Indian_4_600_C.jpg" />
+    <Content Include="Images\indian\Indian_5_150_C.jpg" />
+    <Content Include="Images\indian\Indian_5_600_C.jpg" />
+    <Content Include="Images\indian\Indian_6_150_C.jpg" />
+    <Content Include="Images\indian\Indian_6_600_C.jpg" />
+    <Content Include="Images\indian\indian_group.png" />
+    <Content Include="Images\indian\indian_group_detail.png" />
+    <Content Include="Images\indian\indian_group_header.png" />
+    <Content Include="Images\italian\Italian_1_150_C.jpg" />
+    <Content Include="Images\italian\Italian_1_600_C.jpg" />
+    <Content Include="Images\italian\Italian_2_150_C.jpg" />
+    <Content Include="Images\italian\Italian_2_600_C.jpg" />
+    <Content Include="Images\italian\Italian_3_150_C.jpg" />
+    <Content Include="Images\italian\Italian_3_600_C.jpg" />
+    <Content Include="Images\italian\Italian_4_150_C.jpg" />
+    <Content Include="Images\italian\Italian_4_310_C.jpg" />
+    <Content Include="Images\italian\Italian_4_600_C.jpg" />
+    <Content Include="Images\italian\Italian_5_150_C.jpg" />
+    <Content Include="Images\italian\Italian_5_310_C.jpg" />
+    <Content Include="Images\italian\Italian_5_600_C.jpg" />
+    <Content Include="Images\italian\Italian_6_150_C.jpg" />
+    <Content Include="Images\italian\Italian_6_600_C.jpg" />
+    <Content Include="Images\italian\italian_group.png" />
+    <Content Include="Images\italian\italian_group_detail.png" />
+    <Content Include="Images\italian\italian_group_header.png" />
+    <Content Include="Images\mexican\Mexican_1_150_C.jpg" />
+    <Content Include="Images\mexican\Mexican_1_600_C.jpg" />
+    <Content Include="Images\mexican\Mexican_2_150_C.jpg" />
+    <Content Include="Images\mexican\Mexican_2_600_C.jpg" />
+    <Content Include="Images\mexican\Mexican_3_150_C.jpg" />
+    <Content Include="Images\mexican\Mexican_3_600_C.jpg" />
+    <Content Include="Images\mexican\Mexican_4_150_C.jpg" />
+    <Content Include="Images\mexican\Mexican_4_600_C.jpg" />
+    <Content Include="Images\mexican\Mexican_5_150_C.jpg" />
+    <Content Include="Images\mexican\Mexican_5_600_C.jpg" />
+    <Content Include="Images\mexican\Mexican_6_150_C.jpg" />
+    <Content Include="Images\mexican\Mexican_6_600_C.jpg" />
+    <Content Include="Images\mexican\mexican_group.png" />
+    <Content Include="Images\mexican\mexican_group_detail.png" />
+    <Content Include="Images\mexican\mexican_group_header.png" />
+    <Content Include="Images\tiles\Chinese_6_310_C.jpg" />
+    <Content Include="Images\tiles\French_2_310_C.jpg" />
+    <Content Include="Images\tiles\German_4_310_C.jpg" />
+    <Content Include="Images\tiles\Italian_4_310_C.jpg" />
+    <Content Include="Images\tiles\Italian_5_310_C.jpg" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -163,10 +265,26 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\winrt45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Extensions">
+      <HintPath>..\packages\Microsoft.Net.Http.2.1.3-beta\lib\win8\System.Net.Http.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.0.0-alpha-130325\lib\portable-wp8+winrt+net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Primitives">
+      <HintPath>..\packages\Microsoft.Net.Http.2.1.3-beta\lib\win8\System.Net.Http.Primitives.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '11.0' ">
     <VisualStudioVersion>11.0</VisualStudioVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

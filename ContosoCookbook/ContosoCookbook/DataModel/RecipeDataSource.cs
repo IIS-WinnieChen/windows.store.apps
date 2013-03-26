@@ -1,5 +1,4 @@
 ﻿using System;
-<<<<<<< HEAD
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,6 +16,11 @@ using Windows.ApplicationModel;
 using Windows.Storage.Streams;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using System.Net.Http.Formatting;
+using System.Net.Http.Headers;
 
 // The data model defined by this file serves as a representative example of a strongly-typed
 // model that supports notification when members are added, removed, or modified.  The property
@@ -34,7 +38,7 @@ namespace ContosoCookbook.Data
     [Windows.Foundation.Metadata.WebHostHidden]
     public abstract class RecipeDataCommon : ContosoCookbook.Common.BindableBase
     {
-        internal  static Uri _baseUri = new Uri("ms-appx:///");
+        internal static Uri _baseUri = new Uri("ms-appx:///");
 
         public RecipeDataCommon(String uniqueId, String title, String shortTitle, String imagePath)
         {
@@ -72,9 +76,9 @@ namespace ContosoCookbook.Data
         {
             get
             {
-                return new Uri(RecipeDataCommon._baseUri, this._imagePath); 
+                return new Uri(RecipeDataCommon._baseUri, this._imagePath);
             }
-        } 
+        }
 
         public ImageSource Image
         {
@@ -116,7 +120,7 @@ namespace ContosoCookbook.Data
             : base(String.Empty, String.Empty, String.Empty, String.Empty)
         {
         }
-        
+
         public RecipeDataItem(String uniqueId, String title, String shortTitle, String imagePath, int preptime, String directions, ObservableCollection<string> ingredients, RecipeDataGroup group)
             : base(uniqueId, title, shortTitle, imagePath)
         {
@@ -132,7 +136,7 @@ namespace ContosoCookbook.Data
             get { return this._preptime; }
             set { this.SetProperty(ref this._preptime, value); }
         }
-        
+
         private string _directions = string.Empty;
         public string Directions
         {
@@ -146,7 +150,7 @@ namespace ContosoCookbook.Data
             get { return this._ingredients; }
             set { this.SetProperty(ref this._ingredients, value); }
         }
-    
+
         private RecipeDataGroup _group;
         public RecipeDataGroup Group
         {
@@ -164,7 +168,7 @@ namespace ContosoCookbook.Data
                 return new Uri(RecipeDataCommon._baseUri, this._tileImagePath);
             }
         }
-        
+
         public ImageSource TileImage
         {
             get
@@ -199,7 +203,7 @@ namespace ContosoCookbook.Data
             : base(String.Empty, String.Empty, String.Empty, String.Empty)
         {
         }
-        
+
         public RecipeDataGroup(String uniqueId, String title, String shortTitle, String imagePath, String description)
             : base(uniqueId, title, shortTitle, imagePath)
         {
@@ -231,7 +235,7 @@ namespace ContosoCookbook.Data
         }
 
         private ImageSource _groupImage;
-        private string _groupImagePath;  
+        private string _groupImagePath;
 
         public ImageSource GroupImage
         {
@@ -254,9 +258,9 @@ namespace ContosoCookbook.Data
         {
             get
             {
-                return this.Items.Count; 
-            } 
-        } 
+                return this.Items.Count;
+            }
+        }
 
         public void SetGroupImage(String path)
         {
@@ -274,7 +278,7 @@ namespace ContosoCookbook.Data
         //public event EventHandler RecipesLoaded;
 
         private static RecipeDataSource _recipeDataSource = new RecipeDataSource();
-        
+
         private ObservableCollection<RecipeDataGroup> _allGroups = new ObservableCollection<RecipeDataGroup>();
         public ObservableCollection<RecipeDataGroup> AllGroups
         {
@@ -308,15 +312,22 @@ namespace ContosoCookbook.Data
         {
             // Retrieve recipe data from Azure
             var client = new HttpClient();
+            client.BaseAddress = new Uri("http://contosorecipes8.blob.core.windows.net/");
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.MaxResponseContentBufferSize = 1024 * 1024; // Read up to 1 MB of data
-            var response = await client.GetAsync(new Uri("http://contosorecipes8.blob.core.windows.net/AzureRecipesRP"));
-            var result = await response.Content.ReadAsStringAsync();
-
-            // Parse the JSON recipe data
-            var recipes = JsonArray.Parse(result);
-
-            // Convert the JSON objects into RecipeDataItems and RecipeDataGroups
-            CreateRecipesAndRecipeGroups(recipes);
+            var response = await client.GetAsync(("AzureRecipesRP"));
+            var jsonTypeFormatter = new JsonMediaTypeFormatter
+            {
+                SerializerSettings = new JsonSerializerSettings
+                {
+                    Converters = new List<JsonConverter> 
+                                {
+                                    new RecipeDataItemConverter(_recipeDataSource)
+                                }
+                }
+            };
+            jsonTypeFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/octet-stream"));
+            await response.Content.ReadAsAsync<List<RecipeDataItem>>(new[] { jsonTypeFormatter} );
         }
 
         public static async Task LoadLocalDataAsync()
@@ -329,119 +340,72 @@ namespace ContosoCookbook.Data
             var recipes = JsonArray.Parse(result);
 
             // Convert the JSON objects into RecipeDataItems and RecipeDataGroups
-            CreateRecipesAndRecipeGroups(recipes);
+            JsonConvert.DeserializeObject<List<RecipeDataItem>>(result, new RecipeDataItemConverter(_recipeDataSource));
+        }
+    }
+
+    public class RecipeDataItemConverter : CustomCreationConverter<RecipeDataItem>
+    {
+        private RecipeDataSource _recipeDataSource;
+        public RecipeDataItemConverter(RecipeDataSource recipeDataSource)
+        {
+            _recipeDataSource = recipeDataSource;
+        }
+        public override RecipeDataItem Create(Type obectType)
+        {
+            return new RecipeDataItem();
         }
 
-        private static void CreateRecipesAndRecipeGroups(JsonArray array)
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            foreach (var item in array)
+            var jObject = JObject.Load(reader);
+            var recipe = new RecipeDataItem()
             {
-                var obj = item.GetObject();
-                RecipeDataItem recipe = new RecipeDataItem();
-                RecipeDataGroup group = null;
+                UniqueId = jObject.Value<string>("key"),
+                Title = jObject.Value<string>("title"),
+                ShortTitle = jObject.Value<string>("shortTitle"),
+                PrepTime = jObject.Value<int>("preptime"),
+                Directions = jObject.Value<string>("directions"),
+            };
+            var list = (from i in jObject.Value<JArray>("ingredients") select i.Value<string>()).ToList();
+            recipe.Ingredients = new ObservableCollection<string>(list);
+            recipe.SetImage(jObject.Value<string>("backgroundImage"));
+            recipe.SetTileImage(jObject.Value<string>("titleImage"));
 
-                foreach (var key in obj.Keys)
-                {
-                    IJsonValue val;
-                    if (!obj.TryGetValue(key, out val))
-                        continue;
-
-                    switch (key)
-                    {
-                        case "key":
-                            recipe.UniqueId = val.GetNumber().ToString();
-                            break;
-                        case "title":
-                            recipe.Title = val.GetString();
-                            break;
-                        case "shortTitle":
-                            recipe.ShortTitle = val.GetString();
-                            break;
-                        case "preptime":
-                            recipe.PrepTime = (int)val.GetNumber();
-                            break;
-                        case "directions":
-                            recipe.Directions = val.GetString();
-                            break;
-                        case "ingredients":
-                            var ingredients = val.GetArray();
-                            var list = (from i in ingredients select i.GetString()).ToList();
-                            recipe.Ingredients = new ObservableCollection<string>(list);
-                            break;
-                        case "backgroundImage":
-                            recipe.SetImage(val.GetString());
-                            break;
-                        case "tileImage":
-                            recipe.SetTileImage(val.GetString());
-                            break;
-                        case "group":
-                            var recipeGroup = val.GetObject();
-
-                            IJsonValue groupKey;
-                            if (!recipeGroup.TryGetValue("key", out groupKey))
-                                continue;
-
-                            group = _recipeDataSource.AllGroups.FirstOrDefault(c => c.UniqueId.Equals(groupKey.GetString()));
-
-                            if (group == null)
-                                group = CreateRecipeGroup(recipeGroup);
-
-                            recipe.Group = group;
-                            break;
-                    }
-                }
-
-                if (group != null)
-                    group.Items.Add(recipe);
+            var recipeGroup = JsonConvert.DeserializeObject<RecipeDataGroup>(jObject.GetValue("group").ToString(), new RecipeDataGroupConverter());
+            var group = _recipeDataSource.AllGroups.FirstOrDefault(c => c.UniqueId.Equals(recipeGroup.UniqueId));
+            if (group == null)
+            {
+                group = recipeGroup;
+                _recipeDataSource.AllGroups.Add(group);
             }
+            group.Items.Add(recipe);
+            recipe.Group = group;
+            return recipe;
         }
-        
-        private static RecipeDataGroup CreateRecipeGroup(JsonObject obj)
+    }
+
+    public class RecipeDataGroupConverter : CustomCreationConverter<RecipeDataGroup>
+    {
+        public override RecipeDataGroup Create(Type objectType)
         {
-            RecipeDataGroup group = new RecipeDataGroup();
+            return new RecipeDataGroup();
+        }
 
-            foreach (var key in obj.Keys)
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            var jObject = JObject.Load(reader);
+            var group = new RecipeDataGroup()
             {
-                IJsonValue val;
-                if (!obj.TryGetValue(key, out val))
-                    continue;
+                UniqueId = jObject.Value<string>("key"),
+                Title = jObject.Value<string>("title"),
+                ShortTitle = jObject.Value<string>("shortTitle"),
+                Description = jObject.Value<string>("description"),
+            };
 
-                switch (key)
-                {
-                    case "key":
-                        group.UniqueId = val.GetString();
-                        break;
-                    case "title":
-                        group.Title = val.GetString();
-                        break;
-                    case "shortTitle":
-                        group.ShortTitle = val.GetString();
-                        break;
-                    case "description":
-                        group.Description = val.GetString();
-                        break;
-                    case "backgroundImage":
-                        group.SetImage(val.GetString());
-                        break;
-                    case "groupImage" :
-                        group.SetGroupImage(val.GetString());
-                        break; 
-                }
-            }
-
-            _recipeDataSource.AllGroups.Add(group);
+            group.SetImage(jObject.Value<string>("backgroundImage"));
+            group.SetGroupImage(jObject.Value<string>("groupImage"));
             return group;
         }
-=======
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ContosoCookbook.DataModel
-{
-    class RecipeDataSource
-    {
->>>>>>> 81fb74878327df560f3f589619652619d2a87874
     }
 }
