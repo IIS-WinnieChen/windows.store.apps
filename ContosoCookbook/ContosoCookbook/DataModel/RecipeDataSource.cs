@@ -21,6 +21,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
+using ContosoCookbook.DataModel;
 
 // The data model defined by this file serves as a representative example of a strongly-typed
 // model that supports notification when members are added, removed, or modified.  The property
@@ -308,28 +309,36 @@ namespace ContosoCookbook.Data
             return null;
         }
 
-        public static async Task LoadRemoteDataAsync()
+        public static  void PopulateRecipes(IEnumerable<RecipeDataItemDto> recipeDataItemDtos)
         {
-            // Retrieve recipe data from Azure
-            var client = new HttpClient();
-            client.BaseAddress = new Uri("http://contosorecipes8.blob.core.windows.net/");
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.MaxResponseContentBufferSize = 1024 * 1024; // Read up to 1 MB of data
-            var response = await client.GetAsync(("AzureRecipesRP"));
-            var jsonTypeFormatter = new JsonMediaTypeFormatter
+            foreach (var recipeDto in recipeDataItemDtos)
             {
-                SerializerSettings = new JsonSerializerSettings
+                var recipeGroup = GetGroup(recipeDto.Group.UniqueId);
+                if (recipeGroup  == null)
                 {
-                    Converters = new List<JsonConverter> 
-                                {
-                                    new RecipeDataItemConverter(_recipeDataSource)
-                                }
+                    recipeGroup = new RecipeDataGroup(recipeDto.Group.UniqueId, recipeDto.Group.Title, recipeDto.Group.ShortTitle, recipeDto.Group.ImagePath, recipeDto.Group.Description);
+                    recipeGroup.SetImage(recipeDto.Group.ImagePath);
+                    recipeGroup.SetGroupImage(recipeDto.Group.GroupImagePath);
+                    _recipeDataSource.AllGroups.Add(recipeGroup );
                 }
-            };
-            jsonTypeFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/octet-stream"));
-            await response.Content.ReadAsAsync<List<RecipeDataItem>>(new[] { jsonTypeFormatter} );
+
+                var recipe = new RecipeDataItem(recipeDto.UniqueId, 
+                                    recipeDto.Title, 
+                                    recipeDto.ShortTitle, 
+                                    recipeDto.ImagePath, 
+                                    recipeDto.PrepTime, 
+                                    recipeDto.Directions, 
+                                    new ObservableCollection<string>(recipeDto.Ingredients.ToList()), 
+                                    recipeGroup);
+                
+                recipeGroup .Items.Add(recipe);
+
+                recipe.SetImage(recipeDto.ImagePath);
+                recipe.SetTileImage(recipeDto.TitleImagePath);
+            }
         }
 
+        /*
         public static async Task LoadLocalDataAsync()
         {
             // Retrieve recipe data from Recipes.txt
@@ -340,72 +349,9 @@ namespace ContosoCookbook.Data
             var recipes = JsonArray.Parse(result);
 
             // Convert the JSON objects into RecipeDataItems and RecipeDataGroups
-            JsonConvert.DeserializeObject<List<RecipeDataItem>>(result, new RecipeDataItemConverter(_recipeDataSource));
+            JsonConvert.DeserializeObject<List<RecipeDataItem>>(result);
         }
+        */
     }
 
-    public class RecipeDataItemConverter : CustomCreationConverter<RecipeDataItem>
-    {
-        private RecipeDataSource _recipeDataSource;
-        public RecipeDataItemConverter(RecipeDataSource recipeDataSource)
-        {
-            _recipeDataSource = recipeDataSource;
-        }
-        public override RecipeDataItem Create(Type obectType)
-        {
-            return new RecipeDataItem();
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            var jObject = JObject.Load(reader);
-            var recipe = new RecipeDataItem()
-            {
-                UniqueId = jObject.Value<string>("key"),
-                Title = jObject.Value<string>("title"),
-                ShortTitle = jObject.Value<string>("shortTitle"),
-                PrepTime = jObject.Value<int>("preptime"),
-                Directions = jObject.Value<string>("directions"),
-            };
-            var list = (from i in jObject.Value<JArray>("ingredients") select i.Value<string>()).ToList();
-            recipe.Ingredients = new ObservableCollection<string>(list);
-            recipe.SetImage(jObject.Value<string>("backgroundImage"));
-            recipe.SetTileImage(jObject.Value<string>("titleImage"));
-
-            var recipeGroup = JsonConvert.DeserializeObject<RecipeDataGroup>(jObject.GetValue("group").ToString(), new RecipeDataGroupConverter());
-            var group = _recipeDataSource.AllGroups.FirstOrDefault(c => c.UniqueId.Equals(recipeGroup.UniqueId));
-            if (group == null)
-            {
-                group = recipeGroup;
-                _recipeDataSource.AllGroups.Add(group);
-            }
-            group.Items.Add(recipe);
-            recipe.Group = group;
-            return recipe;
-        }
-    }
-
-    public class RecipeDataGroupConverter : CustomCreationConverter<RecipeDataGroup>
-    {
-        public override RecipeDataGroup Create(Type objectType)
-        {
-            return new RecipeDataGroup();
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            var jObject = JObject.Load(reader);
-            var group = new RecipeDataGroup()
-            {
-                UniqueId = jObject.Value<string>("key"),
-                Title = jObject.Value<string>("title"),
-                ShortTitle = jObject.Value<string>("shortTitle"),
-                Description = jObject.Value<string>("description"),
-            };
-
-            group.SetImage(jObject.Value<string>("backgroundImage"));
-            group.SetGroupImage(jObject.Value<string>("groupImage"));
-            return group;
-        }
-    }
 }
