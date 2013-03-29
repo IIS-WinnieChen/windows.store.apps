@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 
 namespace ContosoCookbook.DataModel
 {
@@ -11,7 +6,7 @@ namespace ContosoCookbook.DataModel
     {
         public RecipeDataItemDto(string title, string uniqueId, int prepTime, string shortTitle, string directions, string titleImage, string backgroundImage)
         {
-            Title = Title;
+            Title = title;
             UniqueId = uniqueId;
             PrepTime = prepTime; 
             ShortTitle = shortTitle; 

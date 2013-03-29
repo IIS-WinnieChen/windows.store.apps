@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace ContosoCookbook.DataModel
 {
@@ -33,6 +31,7 @@ namespace ContosoCookbook.DataModel
             set;
         }
 
+        [JsonProperty("groupImage")]
         public string GroupImagePath
         {
             get;
